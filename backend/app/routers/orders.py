@@ -21,6 +21,12 @@ from app.services.llm import LLMError
 router = APIRouter(prefix="/api/orders", tags=["orders"])
 
 
+def _mark_failed(session: Session, order: Order) -> None:
+    order.status = OrderStatus.failed
+    session.add(order)
+    session.commit()
+
+
 @router.post("", response_model=Order, status_code=201)
 def create_order(payload: OrderCreate, session: Session = Depends(get_session)) -> Order:
     if not session.get(Client, payload.client_id):
@@ -48,6 +54,8 @@ def run_order(order_id: int, session: Session = Depends(get_session)) -> Deliver
     order = session.get(Order, order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
+    if order.status in (OrderStatus.in_progress, OrderStatus.done):
+        raise HTTPException(status_code=409, detail=f"Order already {order.status}")
     client = session.get(Client, order.client_id)
     if not client:
         raise HTTPException(status_code=404, detail="Client not found")
@@ -59,10 +67,13 @@ def run_order(order_id: int, session: Session = Depends(get_session)) -> Deliver
     try:
         ctx = Orchestrator().run(client, order)
     except LLMError as exc:
-        order.status = OrderStatus.failed
-        session.add(order)
-        session.commit()
+        _mark_failed(session, order)
         raise HTTPException(status_code=502, detail=f"LLM error: {exc}") from exc
+    except Exception as exc:
+        # Network/transport errors (e.g. httpx timeouts) are not LLMError —
+        # without this the order would stay stuck in `in_progress` forever.
+        _mark_failed(session, order)
+        raise HTTPException(status_code=502, detail=f"Pipeline error: {exc}") from exc
 
     deliverable = Deliverable(
         order_id=order.id,

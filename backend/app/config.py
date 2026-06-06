@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     gigachat_auth_key: str = Field(default="", description="Base64 of client_id:secret")
     gigachat_scope: str = Field(default="GIGACHAT_API_PERS")
     gigachat_model: str = Field(default="GigaChat")
+    # GigaChat's TLS chain uses the Russian root CA. Disabled by default for dev;
+    # set to true (and install the Минцифры CA bundle) in production.
+    gigachat_verify_tls: bool = Field(default=False)
 
     # When true (or when no GigaChat key is set) agents use a deterministic
     # offline stub instead of calling the real LLM. Keeps tests/CI hermetic.

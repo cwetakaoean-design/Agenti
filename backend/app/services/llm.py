@@ -29,10 +29,6 @@ logger = logging.getLogger(__name__)
 OAUTH_URL = "https://ngw.devices.sberbank.ru:9443/api/v2/oauth"
 CHAT_URL = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
 
-# GigaChat's TLS chain is signed by the Russian root CA, so verification is
-# disabled in dev. In prod install the Минцифры CA bundle and re-enable.
-VERIFY_TLS = False
-
 
 class LLMError(RuntimeError):
     """Raised when an LLM backend fails."""
@@ -64,6 +60,7 @@ class GigaChatLLM:
         self.auth_key = s.gigachat_auth_key
         self.scope = s.gigachat_scope
         self.model = s.gigachat_model
+        self.verify_tls = s.gigachat_verify_tls
 
     def _fetch_token(self) -> str:
         headers = {
@@ -71,7 +68,7 @@ class GigaChatLLM:
             "RqUID": str(uuid.uuid4()),
             "Content-Type": "application/x-www-form-urlencoded",
         }
-        with httpx.Client(verify=VERIFY_TLS, timeout=30) as http:
+        with httpx.Client(verify=self.verify_tls, timeout=30) as http:
             resp = http.post(OAUTH_URL, headers=headers, data={"scope": self.scope})
         if resp.status_code != 200:
             raise LLMError(f"OAuth failed: {resp.status_code} {resp.text[:200]}")
@@ -102,7 +99,7 @@ class GigaChatLLM:
             "temperature": temperature,
             "max_tokens": max_tokens,
         }
-        with httpx.Client(verify=VERIFY_TLS, timeout=120) as http:
+        with httpx.Client(verify=self.verify_tls, timeout=120) as http:
             resp = http.post(
                 CHAT_URL,
                 headers={

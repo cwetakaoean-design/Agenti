@@ -20,7 +20,8 @@ def pricing() -> dict[str, int]:
 def revenue(session: Session = Depends(get_session)) -> RevenueSummary:
     orders = list(session.exec(select(Order)).all())
     done = [o for o in orders if o.status == OrderStatus.done]
-    pipeline = [o for o in orders if o.status != OrderStatus.done]
+    # Pipeline = potential revenue still in flight; failed orders are excluded.
+    pipeline = [o for o in orders if o.status in (OrderStatus.new, OrderStatus.in_progress)]
     return RevenueSummary(
         orders_total=len(orders),
         orders_done=len(done),
