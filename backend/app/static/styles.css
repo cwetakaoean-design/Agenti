@@ -133,6 +133,15 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 .badge.in_progress { color: #f5c451; border-color: #f5c451; }
 .badge.done { color: var(--accent-2); border-color: var(--accent-2); }
 .badge.failed { color: #ff7a7a; border-color: #ff7a7a; }
+.badge.pay-unpaid { color: #f5c451; border-color: #f5c451; }
+.badge.pay-paid { color: var(--accent-2); border-color: var(--accent-2); }
+
+.head-right { display: flex; gap: 14px; align-items: center; }
+.intake-link {
+  font-size: 13px; color: var(--accent); text-decoration: none;
+  padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border);
+}
+.intake-link:hover { filter: brightness(1.1); }
 
 .empty { color: var(--muted); font-size: 14px; }
 

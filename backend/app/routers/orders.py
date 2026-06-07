@@ -11,9 +11,12 @@ from app.db import get_session
 from app.models import (
     Client,
     Deliverable,
+    IntakeCreate,
+    IntakeResult,
     Order,
     OrderCreate,
     OrderStatus,
+    PaymentStatus,
 )
 from app.pricing import price_for
 from app.services.llm import LLMError
@@ -44,9 +47,58 @@ def create_order(payload: OrderCreate, session: Session = Depends(get_session)) 
     return order
 
 
+@router.post("/intake", response_model=IntakeResult, status_code=201)
+def intake_order(payload: IntakeCreate, session: Session = Depends(get_session)) -> IntakeResult:
+    """Public endpoint: a client submits a brief; we create the client and the order."""
+    client = Client(
+        name=payload.client_name,
+        industry=payload.industry,
+        brand_voice=payload.brand_voice,
+    )
+    session.add(client)
+    session.flush()  # allocate client.id without an intermediate commit
+
+    order = Order(
+        client_id=client.id,
+        content_type=payload.content_type,
+        topic=payload.topic,
+        brief=payload.brief,
+        price_rub=price_for(payload.content_type),
+    )
+    session.add(order)
+    # Single commit keeps client+order atomic: a failure can't orphan a client.
+    session.commit()
+    session.refresh(order)
+    return IntakeResult(
+        order_id=order.id,
+        client_id=order.client_id,
+        content_type=order.content_type,
+        topic=order.topic,
+        price_rub=order.price_rub,
+    )
+
+
 @router.get("", response_model=list[Order])
 def list_orders(session: Session = Depends(get_session)) -> list[Order]:
     return list(session.exec(select(Order).order_by(Order.id.desc())).all())
+
+
+@router.post("/{order_id}/pay", response_model=Order)
+def mark_paid(order_id: int, session: Session = Depends(get_session)) -> Order:
+    """Manual bookkeeping: mark an order's invoice as paid (counts toward revenue)."""
+    order = session.get(Order, order_id)
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if order.status == OrderStatus.failed:
+        raise HTTPException(status_code=400, detail="Cannot invoice a failed order")
+    if order.payment_status == PaymentStatus.paid:
+        raise HTTPException(status_code=409, detail="Order already paid")
+    order.payment_status = PaymentStatus.paid
+    order.paid_at = datetime.now(UTC)
+    session.add(order)
+    session.commit()
+    session.refresh(order)
+    return order
 
 
 @router.post("/{order_id}/run", response_model=Deliverable)

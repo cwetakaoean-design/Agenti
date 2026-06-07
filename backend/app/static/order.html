@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agenti — заказать контент</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">◆</span>
+      <div>
+        <h1>Agenti</h1>
+        <p class="tagline">Закажите контент у ИИ-агентства</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <div class="columns">
+      <section class="panel">
+        <h2>Оставьте заявку</h2>
+        <form id="intake-form">
+          <input name="client_name" placeholder="Ваше имя или компания *" required />
+          <input name="industry" placeholder="Сфера (напр. стоматология)" />
+          <input name="brand_voice" placeholder="Tone of voice (напр. дружелюбный, экспертный)" />
+          <select name="content_type" id="intake-type" required></select>
+          <input name="topic" placeholder="Тема контента *" required />
+          <textarea name="brief" placeholder="Бриф / детали (необязательно)"></textarea>
+          <button type="submit">Отправить заявку</button>
+        </form>
+      </section>
+
+      <section class="panel wide">
+        <h2>Что вы получите</h2>
+        <p class="empty">
+          Команда ИИ-агентов (Стратег → Копирайтер → Редактор) подготовит для вас
+          готовый материал. После отправки заявки мы выставим счёт по тарифу выбранного
+          формата и приступим к работе.
+        </p>
+        <div id="intake-result" hidden>
+          <div class="result-block">
+            <h3>✦ Заявка принята</h3>
+            <pre id="intake-result-text"></pre>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="/static/order.js"></script>
+</body>
+</html>
