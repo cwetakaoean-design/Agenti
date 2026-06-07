@@ -43,4 +43,9 @@ def index() -> FileResponse:
     return FileResponse(STATIC_DIR / "index.html")
 
 
+@app.get("/order", include_in_schema=False)
+def order_page() -> FileResponse:
+    return FileResponse(STATIC_DIR / "order.html")
+
+
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")

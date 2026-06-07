@@ -27,6 +27,13 @@ class OrderStatus(StrEnum):
     failed = "failed"
 
 
+class PaymentStatus(StrEnum):
+    """Manual invoice bookkeeping: revenue is only counted once an order is paid."""
+
+    unpaid = "unpaid"
+    paid = "paid"
+
+
 # ---------------------------------------------------------------------------
 # Tables
 # ---------------------------------------------------------------------------
@@ -49,9 +56,11 @@ class Order(SQLModel, table=True):
     topic: str
     brief: str = ""
     status: OrderStatus = Field(default=OrderStatus.new)
+    payment_status: PaymentStatus = Field(default=PaymentStatus.unpaid)
     price_rub: int = 0
     created_at: datetime = Field(default_factory=_now)
     completed_at: datetime | None = None
+    paid_at: datetime | None = None
 
 
 class Deliverable(SQLModel, table=True):
@@ -84,8 +93,28 @@ class OrderCreate(BaseModel):
     brief: str = ""
 
 
+class IntakeCreate(BaseModel):
+    """Public order form: a new client submits a paid brief without admin access."""
+
+    client_name: str
+    industry: str = ""
+    brand_voice: str = ""
+    content_type: ContentType
+    topic: str
+    brief: str = ""
+
+
+class IntakeResult(BaseModel):
+    order_id: int
+    client_id: int
+    content_type: ContentType
+    topic: str
+    price_rub: int
+
+
 class RevenueSummary(BaseModel):
     orders_total: int
     orders_done: int
-    revenue_rub: int
-    pipeline_rub: int  # value of orders not yet completed
+    orders_paid: int
+    revenue_rub: int  # money actually received (paid orders only)
+    pipeline_rub: int  # outstanding value: live orders not yet paid

@@ -77,6 +77,10 @@ async function loadRevenue() {
   document.getElementById("stat-total").textContent = r.orders_total;
 }
 
+function paymentLabel(s) {
+  return { unpaid: "не оплачен", paid: "оплачен" }[s] || s;
+}
+
 async function loadOrders() {
   const [orders, clients] = await Promise.all([api("/api/orders"), api("/api/clients")]);
   const byId = Object.fromEntries(clients.map((c) => [c.id, c]));
@@ -99,6 +103,7 @@ async function loadOrders() {
         ${client ? escapeHtml(client.name) : "—"} ·
         ${TYPE_LABELS[o.content_type] || o.content_type}
         <span class="badge ${o.status}">${statusLabel(o.status)}</span>
+        <span class="badge pay-${o.payment_status}">${paymentLabel(o.payment_status)}</span>
       </div>
       <div class="order-actions"></div>`;
     const actions = div.querySelector(".order-actions");
@@ -120,6 +125,20 @@ async function loadOrders() {
         }
       });
       actions.appendChild(run);
+    }
+    if (o.status !== "failed" && o.payment_status !== "paid") {
+      const pay = mkBtn("₽ Отметить оплаченным", "ghost", async (btn) => {
+        btn.disabled = true;
+        try {
+          await api(`/api/orders/${o.id}/pay`, { method: "POST" });
+          toast("Заказ оплачен");
+          await refresh();
+        } catch (e) {
+          toast("Ошибка: " + e.message);
+          btn.disabled = false;
+        }
+      });
+      actions.appendChild(pay);
     }
     wrap.appendChild(div);
   }
