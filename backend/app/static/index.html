@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agenti — ИИ-агентство контента</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">◆</span>
+      <div>
+        <h1>Agenti</h1>
+        <p class="tagline">Автономное агентство ИИ-агентов · контент &amp; SMM</p>
+      </div>
+    </div>
+    <div class="llm-badge" id="llm-badge">…</div>
+  </header>
+
+  <main class="layout">
+    <section class="cards" id="stats">
+      <div class="stat">
+        <div class="stat-value" id="stat-revenue">0 ₽</div>
+        <div class="stat-label">Заработано</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="stat-pipeline">0 ₽</div>
+        <div class="stat-label">В работе (потенциал)</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="stat-done">0</div>
+        <div class="stat-label">Выполнено заказов</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="stat-total">0</div>
+        <div class="stat-label">Всего заказов</div>
+      </div>
+    </section>
+
+    <div class="columns">
+      <section class="panel">
+        <h2>1. Клиент</h2>
+        <form id="client-form">
+          <input name="name" placeholder="Название клиента *" required />
+          <input name="industry" placeholder="Сфера (напр. стоматология)" />
+          <input name="brand_voice" placeholder="Tone of voice (напр. дружелюбный, экспертный)" />
+          <button type="submit">Добавить клиента</button>
+        </form>
+
+        <h2>2. Бриф / заказ</h2>
+        <form id="order-form">
+          <select name="client_id" id="order-client" required>
+            <option value="">Выберите клиента…</option>
+          </select>
+          <select name="content_type" id="order-type" required></select>
+          <input name="topic" placeholder="Тема контента *" required />
+          <textarea name="brief" placeholder="Бриф / детали (необязательно)"></textarea>
+          <button type="submit">Создать заказ</button>
+        </form>
+      </section>
+
+      <section class="panel wide">
+        <h2>Заказы</h2>
+        <div id="orders" class="orders"></div>
+      </section>
+    </div>
+
+    <section class="panel" id="result-panel" hidden>
+      <h2>Готовый контент <button class="close" id="result-close">×</button></h2>
+      <div id="result"></div>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

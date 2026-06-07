@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Env / secrets
+.env
+*.env
+!.env.example
+
+# SQLite
+*.db
+*.sqlite3
+
+# uv
+.uv/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
+/test-plan.md
