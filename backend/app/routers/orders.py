@@ -56,8 +56,7 @@ def intake_order(payload: IntakeCreate, session: Session = Depends(get_session))
         brand_voice=payload.brand_voice,
     )
     session.add(client)
-    session.commit()
-    session.refresh(client)
+    session.flush()  # allocate client.id without an intermediate commit
 
     order = Order(
         client_id=client.id,
@@ -67,11 +66,12 @@ def intake_order(payload: IntakeCreate, session: Session = Depends(get_session))
         price_rub=price_for(payload.content_type),
     )
     session.add(order)
+    # Single commit keeps client+order atomic: a failure can't orphan a client.
     session.commit()
     session.refresh(order)
     return IntakeResult(
         order_id=order.id,
-        client_id=client.id,
+        client_id=order.client_id,
         content_type=order.content_type,
         topic=order.topic,
         price_rub=order.price_rub,
